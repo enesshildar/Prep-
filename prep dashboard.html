@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Prep" />
+<meta name="theme-color" content="#15181B" />
+<title>Prep Dashboard</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+:root {
+  --bg:#15181B; --surface:#1E2226; --surface2:#262B30; --border:#33383D;
+  --text:#F5F1E8; --muted:#8B9197; --gold:#E8A33D; --sage:#6FA88A; --rust:#D2694F; --steel:#6E9BC4;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  background:var(--bg);color:var(--text);
+  font-family:'Inter',-apple-system,sans-serif;
+  -webkit-font-smoothing:antialiased;
+  padding:16px;padding-bottom:80px;min-height:100vh;
+}
+
+/* NAV */
+.bottom-nav{
+  position:fixed;bottom:0;left:0;right:0;
+  background:var(--surface);border-top:1px solid var(--border);
+  display:flex;z-index:100;
+  padding-bottom:env(safe-area-inset-bottom);
+}
+.nav-btn{
+  flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:10px 4px 8px;background:none;border:none;color:var(--muted);
+  font-family:'Oswald',sans-serif;font-size:10px;letter-spacing:.08em;text-transform:uppercase;
+  cursor:pointer;gap:4px;transition:color .2s;
+}
+.nav-btn.active{color:var(--gold);}
+.nav-icon{font-size:20px;line-height:1;}
+
+/* HEADER */
+.eyebrow{font-family:'Oswald',sans-serif;font-size:10px;letter-spacing:.25em;color:var(--gold);text-transform:uppercase;}
+.h1{font-family:'Oswald',sans-serif;font-size:26px;font-weight:600;letter-spacing:.02em;margin:2px 0;}
+.h1 .sub{color:var(--muted);font-size:14px;}
+.header-row{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:8px;}
+.daycount{font-family:'JetBrains Mono',monospace;font-size:18px;text-align:right;}
+.daycount .sub{color:var(--muted);font-size:12px;}
+.progress-track{margin-top:10px;height:8px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;overflow:hidden;}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--sage),var(--gold));border-radius:4px;transition:width .4s ease;}
+
+/* STATS */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:16px 0;}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 12px;border-top:2px solid var(--gold);}
+.stat-card .val{font-family:'Oswald',sans-serif;font-size:16px;}
+.stat-card .lbl{font-size:10px;color:var(--muted);margin-top:2px;}
+
+/* CARDS */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:14px;}
+.card-title{font-family:'Oswald',sans-serif;font-size:13px;letter-spacing:.1em;text-transform:uppercase;margin-bottom:12px;color:var(--gold);}
+
+/* FORM */
+.field-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;}
+.field label{font-size:11px;color:var(--muted);display:block;margin-bottom:3px;}
+.pd-input,.pd-select{
+  width:100%;background:var(--surface2);border:1px solid var(--border);
+  color:var(--text);border-radius:6px;padding:9px 10px;font-size:15px;
+}
+.pd-input{font-family:'JetBrains Mono',monospace;}
+.pd-select{font-family:'Inter',sans-serif;}
+.pd-input:focus,.pd-select:focus{outline:none;border-color:var(--gold);}
+input[type=number]::-webkit-outer-spin-button,
+input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
+.checkbox-row{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);margin:8px 0 14px;cursor:pointer;}
+.pd-btn{
+  font-family:'Oswald',sans-serif;letter-spacing:.08em;text-transform:uppercase;
+  font-size:13px;padding:12px 22px;border-radius:6px;border:none;cursor:pointer;
+  background:var(--gold);color:var(--bg);width:100%;
+}
+.pd-btn.secondary{background:var(--surface2);color:var(--text);border:1px solid var(--border);}
+.pd-btn:active{opacity:.85;}
+
+/* MACROS */
+.macro-row{margin-bottom:12px;}
+.macro-head{display:flex;justify-content:space-between;margin-bottom:5px;font-size:12px;}
+.macro-head .name{color:var(--muted);}
+.macro-head .val{font-family:'JetBrains Mono',monospace;}
+.macro-head .val .target{color:var(--muted);}
+.macro-track{height:7px;background:var(--surface2);border-radius:4px;overflow:hidden;}
+.macro-fill{height:100%;border-radius:4px;transition:width .4s ease;}
+
+/* WORKOUT */
+.day-label{font-family:'Oswald',sans-serif;font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);margin-bottom:12px;}
+.exercise{
+  display:flex;align-items:flex-start;gap:12px;
+  padding:12px 0;border-bottom:1px solid var(--border);
+}
+.exercise:last-child{border-bottom:none;}
+.ex-check{
+  width:22px;height:22px;border-radius:50%;border:2px solid var(--border);
+  background:none;cursor:pointer;flex-shrink:0;margin-top:1px;
+  display:flex;align-items:center;justify-content:center;transition:all .2s;
+}
+.ex-check.done{background:var(--sage);border-color:var(--sage);}
+.ex-name{font-family:'Inter',sans-serif;font-size:14px;font-weight:500;margin-bottom:3px;}
+.ex-detail{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);}
+.ex-info{flex:1;}
+.rest-card{text-align:center;padding:24px 0;}
+.rest-icon{font-size:40px;margin-bottom:8px;}
+.rest-title{font-family:'Oswald',sans-serif;font-size:20px;color:var(--gold);}
+.rest-sub{font-size:13px;color:var(--muted);margin-top:4px;}
+
+/* MEALS */
+.meal-card{background:var(--surface2);border-radius:8px;padding:12px;margin-bottom:10px;}
+.meal-title{font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);margin-bottom:8px;}
+.meal-item{font-size:13px;color:var(--muted);padding:3px 0;display:flex;justify-content:space-between;}
+.meal-item .kcal{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);}
+.meal-macro-row{display:flex;gap:10px;margin-top:8px;padding-top:8px;border-top:1px solid var(--border);}
+.meal-macro{text-align:center;flex:1;}
+.meal-macro .mv{font-family:'JetBrains Mono',monospace;font-size:13px;}
+.meal-macro .ml{font-size:10px;color:var(--muted);}
+
+/* HISTORY TABLE */
+.tbl-wrap{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;font-size:12px;}
+th,td{padding:7px 5px;text-align:left;font-family:'JetBrains Mono',monospace;}
+th{color:var(--muted);font-family:'Inter',sans-serif;border-bottom:1px solid var(--border);font-size:10px;text-transform:uppercase;letter-spacing:.05em;}
+tr{border-bottom:1px solid var(--border);}
+.del-btn{background:none;border:none;color:var(--muted);cursor:pointer;font-size:15px;padding:0 3px;}
+.empty{color:var(--muted);font-size:13px;line-height:1.6;}
+
+/* SVG CHART */
+.chart-wrap{width:100%;overflow:hidden;}
+
+.footer{display:flex;gap:8px;justify-content:center;margin-top:20px;flex-wrap:wrap;}
+.footer-note{text-align:center;color:var(--muted);font-size:10px;margin-top:8px;line-height:1.6;}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<input type="file" id="importFile" accept="application/json" style="display:none"/>
+
+<script>
+// ─── CONFIG ─────────────────────────────────────────────────────────────────
+const TARGETS = {calories:2300,protein:200,carbs:230,fat:65};
+const START_WEIGHT = 92;
+const GOAL_WEIGHT = 77.5;
+const TOTAL_DAYS = 84;
+const STORAGE_KEY = 'prep-v2';
+const C = {gold:'#E8A33D',sage:'#6FA88A',rust:'#D2694F',steel:'#6E9BC4',border:'#33383D',muted:'#8B9197'};
+
+// ─── 2-WEEK CALISTHENICS PROGRAM ────────────────────────────────────────────
+// Day index 0=Mon, pattern repeats weekly: Push/Pull/Core/Push/Pull/Rest/Rest
+const WORKOUT_SCHEDULE = [
+  { // Day 1 - Mon - Push
+    name:'Push — Göğüs / Omuz / Tricep',
+    exercises:[
+      {name:'Standart Şınav',detail:'4 set × 12-15 tekrar',id:'pu1'},
+      {name:'İnkline Şınav (eller bank üstünde)',detail:'3 set × 12-15 tekrar',id:'pu2'},
+      {name:'Pike Şınav (omuz odaklı)',detail:'3 set × 8-12 tekrar',id:'pu3'},
+      {name:'Dip (sandalye/bank)',detail:'3 set × 10-12 tekrar',id:'pu4'},
+      {name:'Diamond Şınav (tricep)',detail:'3 set × 10-12 tekrar',id:'pu5'},
+    ]
+  },
+  { // Day 2 - Tue - Pull
+    name:'Pull — Sırt / Bicep',
+    exercises:[
+      {name:'Pull-up / Barfiks',detail:'4 set × maks (hedef 6-10)',id:'pl1'},
+      {name:'Chin-up (ters tutuş)',detail:'3 set × 6-10 tekrar',id:'pl2'},
+      {name:'İnverted Row (masa altı)',detail:'3 set × 10-12 tekrar',id:'pl3'},
+      {name:'Havlu Bicep Curl / Bant Curl',detail:'3 set × 12-15 tekrar',id:'pl4'},
+      {name:'Superman Hold',detail:'3 set × 30-45 saniye',id:'pl5'},
+    ]
+  },
+  { // Day 3 - Wed - Core
+    name:'Core & Arms — Karın / Kollar',
+    exercises:[
+      {name:'Asılı Bacak Kaldırma',detail:'4 set × 12-15 tekrar',id:'ca1'},
+      {name:'Plank',detail:'3 set × 45-60 saniye',id:'ca2'},
+      {name:'Russian Twist',detail:'3 set × 20 tekrar',id:'ca3'},
+      {name:'Diamond Şınav',detail:'3 set × 10-12 tekrar',id:'ca4'},
+      {name:'Dar Tutuş Chin-up',detail:'3 set × 6-10 tekrar',id:'ca5'},
+      {name:'Bisiklet Crunch',detail:'3 set × 20 tekrar',id:'ca6'},
+    ]
+  },
+  { // Day 4 - Thu - Push Volume
+    name:'Push — Hacim Günü',
+    exercises:[
+      {name:'Standart Şınav',detail:'4 set × 15-20 tekrar (yavaş)',id:'pv1'},
+      {name:'Geniş Tutuş Şınav',detail:'3 set × 12-15 tekrar',id:'pv2'},
+      {name:'Pike Şınav',detail:'4 set × 10-12 tekrar',id:'pv3'},
+      {name:'Dip',detail:'4 set × 10-15 tekrar',id:'pv4'},
+      {name:'Diamond Şınav',detail:'3 set × 12 tekrar',id:'pv5'},
+    ]
+  },
+  { // Day 5 - Fri - Pull Volume + Core
+    name:'Pull & Core — Hacim Günü',
+    exercises:[
+      {name:'Pull-up',detail:'4 set × maks (yavaş negatif)',id:'pc1'},
+      {name:'Chin-up',detail:'3 set × 8-10 tekrar',id:'pc2'},
+      {name:'İnverted Row',detail:'4 set × 12 tekrar',id:'pc3'},
+      {name:'Hanging Leg Raise',detail:'3 set × 12-15 tekrar',id:'pc4'},
+      {name:'Plank',detail:'3 set × 60 saniye',id:'pc5'},
+      {name:'Bisiklet Crunch',detail:'3 set × 20 tekrar',id:'pc6'},
+    ]
+  },
+  { // Day 6 - Sat - Rest
+    name:'Dinlenme',
+    rest:true,
+    restMsg:'Aktif dinlenme günü. Hafif yürüyüş veya esneme yapabilirsin.',
+  },
+  { // Day 7 - Sun - Rest
+    name:'Dinlenme',
+    rest:true,
+    restMsg:'Tam dinlenme. Yarınki antrenmana hazırlan! 💪',
+  },
+];
+
+// Week 2: same structure but heavier (handled by weekOffset in render)
+
+// ─── 7-DAY MEAL PLAN ─────────────────────────────────────────────────────────
+// 16:8 pencere: 12:00-20:00 | 4 öğün | Çiğ gramaj
+// Ö2 her gün sabit: Protein tozu 30g + Cream of rice 80g
+const WEEKLY_MEALS = [
+  { // 0 - PAZARTESİ
+    prot:'Tavuk Göğüs', kcal:2182, tp:205, tc:229, tf:50,
+    o1:{title:'Öğün 1 — 12:00',items:[
+      {n:'3 tam yumurta',g:'3 adet'},{n:'Yulaf',g:'80g çiğ'},{n:'Muz',g:'120g'}
+    ],p:30,c:80,f:20,kcal:645},
+    o2:{title:'Öğün 2 — 14:30',items:[
+      {n:'Protein tozu',g:'30g (1 ölçek)'},{n:'Cream of rice',g:'80g çiğ'}
+    ],p:29,c:71,f:3,kcal:419},
+    o3:{title:'Öğün 3 — 17:00',items:[
+      {n:'Tavuk göğüs',g:'300g çiğ'},{n:'Basmati pirinç',g:'90g çiğ'},{n:'Zeytinyağı',g:'12g'}
+    ],p:76,c:78,f:20,kcal:773},
+    o4:{title:'Öğün 4 — 19:30',items:[
+      {n:'Tavuk göğüs',g:'300g çiğ'}
+    ],p:70,c:0,f:7,kcal:345},
+  },
+  { // 1 - SALI
+    prot:'Dana Kıyma %5', kcal:2410, tp:202, tc:238, tf:69,
+    o1:{title:'Öğün 1 — 12:00',items:[
+      {n:'3 tam yumurta',g:'3 adet'},{n:'Kepekli ekmek',g:'80g'}
+    ],p:27,c:38,f:17,kcal:437},
+    o2:{title:'Öğün 2 — 14:30',items:[
+      {n:'Protein tozu',g:'30g (1 ölçek)'},{n:'Cream of rice',g:'80g çiğ'}
+    ],p:29,c:71,f:3,kcal:419},
+    o3:{title:'Öğün 3 — 17:00',items:[
+      {n:'Dana kıyma %5',g:'350g çiğ'},{n:'Basmati pirinç',g:'90g çiğ'},{n:'Zeytinyağı',g:'12g'}
+    ],p:76,c:78,f:31,kcal:889},
+    o4:{title:'Öğün 4 — 19:30',items:[
+      {n:'Dana kıyma %5',g:'350g çiğ'},{n:'Basmati pirinç',g:'60g çiğ'}
+    ],p:70,c:51,f:18,kcal:665},
+  },
+  { // 2 - ÇARŞAMBA
+    prot:'Tavuk But (derisiz)', kcal:2389, tp:199, tc:242, tf:67,
+    o1:{title:'Öğün 1 — 12:00',items:[
+      {n:'3 tam yumurta',g:'3 adet'},{n:'Muz',g:'120g'},{n:'Elma',g:'150g'}
+    ],p:20,c:42,f:14,kcal:374},
+    o2:{title:'Öğün 2 — 14:30',items:[
+      {n:'Protein tozu',g:'30g (1 ölçek)'},{n:'Cream of rice',g:'80g çiğ'}
+    ],p:29,c:71,f:3,kcal:419},
+    o3:{title:'Öğün 3 — 17:00',items:[
+      {n:'Tavuk but (derisiz)',g:'380g çiğ'},{n:'Basmati pirinç',g:'90g çiğ'},{n:'Zeytinyağı',g:'12g'}
+    ],p:78,c:78,f:31,kcal:909},
+    o4:{title:'Öğün 4 — 19:30',items:[
+      {n:'Tavuk but (derisiz)',g:'380g çiğ'},{n:'Basmati pirinç',g:'60g çiğ'}
+    ],p:72,c:51,f:19,kcal:687},
+  },
+  { // 3 - PERŞEMBE
+    prot:'Tavuk Göğüs', kcal:2163, tp:202, tc:234, tf:47,
+    o1:{title:'Öğün 1 — 12:00',items:[
+      {n:'3 tam yumurta',g:'3 adet'},{n:'Cream of rice',g:'100g çiğ'}
+    ],p:27,c:85,f:15,kcal:601},
+    o2:{title:'Öğün 2 — 14:30',items:[
+      {n:'Protein tozu',g:'30g (1 ölçek)'},{n:'Cream of rice',g:'80g çiğ'}
+    ],p:29,c:71,f:3,kcal:419},
+    o3:{title:'Öğün 3 — 17:00',items:[
+      {n:'Tavuk göğüs',g:'300g çiğ'},{n:'Basmati pirinç',g:'90g çiğ'},{n:'Zeytinyağı',g:'15g'}
+    ],p:76,c:78,f:22,kcal:798},
+    o4:{title:'Öğün 4 — 19:30',items:[
+      {n:'Tavuk göğüs',g:'300g çiğ'}
+    ],p:70,c:0,f:7,kcal:345},
+  },
+  { // 4 - CUMA
+    prot:'Dana Kıyma %5', kcal:2391, tp:205, tc:229, tf:72,
+    o1:{title:'Öğün 1 — 12:00',items:[
+      {n:'3 tam yumurta',g:'3 adet'},{n:'Yulaf',g:'80g çiğ'},{n:'Muz',g:'120g'}
+    ],p:30,c:80,f:20,kcal:645},
+    o2:{title:'Öğün 2 — 14:30',items:[
+      {n:'Protein tozu',g:'30g (1 ölçek)'},{n:'Cream of rice',g:'80g çiğ'}
+    ],p:29,c:71,f:3,kcal:419},
+    o3:{title:'Öğün 3 — 17:00',items:[
+      {n:'Dana kıyma %5',g:'350g çiğ'},{n:'Basmati pirinç',g:'90g çiğ'},{n:'Zeytinyağı',g:'12g'}
+    ],p:76,c:78,f:31,kcal:889},
+    o4:{title:'Öğün 4 — 19:30',items:[
+      {n:'Dana kıyma %5',g:'350g çiğ'}
+    ],p:70,c:0,f:18,kcal:438},
+  },
+  { // 5 - CUMARTESİ
+    prot:'Tavuk But (derisiz)', kcal:2396, tp:196, tc:238, tf:69,
+    o1:{title:'Öğün 1 — 12:00',items:[
+      {n:'3 tam yumurta',g:'3 adet'},{n:'Kepekli ekmek',g:'80g'}
+    ],p:27,c:38,f:17,kcal:437},
+    o2:{title:'Öğün 2 — 14:30',items:[
+      {n:'Protein tozu',g:'30g (1 ölçek)'},{n:'Cream of rice',g:'80g çiğ'}
+    ],p:29,c:71,f:3,kcal:419},
+    o3:{title:'Öğün 3 — 17:00',items:[
+      {n:'Tavuk but (derisiz)',g:'350g çiğ'},{n:'Basmati pirinç',g:'90g çiğ'},{n:'Zeytinyağı',g:'12g'}
+    ],p:73,c:78,f:31,kcal:889},
+    o4:{title:'Öğün 4 — 19:30',items:[
+      {n:'Tavuk but (derisiz)',g:'350g çiğ'},{n:'Basmati pirinç',g:'60g çiğ'}
+    ],p:67,c:51,f:18,kcal:651},
+  },
+  { // 6 - PAZAR
+    prot:'Tavuk Göğüs', kcal:2163, tp:195, tc:242, tf:46,
+    o1:{title:'Öğün 1 — 12:00',items:[
+      {n:'3 tam yumurta',g:'3 adet'},{n:'Muz',g:'120g'},{n:'Elma',g:'150g'}
+    ],p:20,c:42,f:14,kcal:374},
+    o2:{title:'Öğün 2 — 14:30',items:[
+      {n:'Protein tozu',g:'30g (1 ölçek)'},{n:'Cream of rice',g:'80g çiğ'}
+    ],p:29,c:71,f:3,kcal:419},
+    o3:{title:'Öğün 3 — 17:00',items:[
+      {n:'Tavuk göğüs',g:'300g çiğ'},{n:'Basmati pirinç',g:'90g çiğ'},{n:'Zeytinyağı',g:'15g'}
+    ],p:76,c:78,f:22,kcal:798},
+    o4:{title:'Öğün 4 — 19:30',items:[
+      {n:'Tavuk göğüs',g:'300g çiğ'},{n:'Basmati pirinç',g:'60g çiğ'}
+    ],p:70,c:51,f:7,kcal:572},
+  },
+];
+
+// ─── STATE ───────────────────────────────────────────────────────────────────
+function todayStr(){return new Date().toISOString().slice(0,10);}
+
+function loadData(){
+  try{const r=localStorage.getItem(STORAGE_KEY);if(r)return JSON.parse(r);}catch(e){}
+  return{startDate:todayStr(),entries:[],workouts:{}};
+}
+function saveData(){
+  try{localStorage.setItem(STORAGE_KEY,JSON.stringify(state.data));}
+  catch(e){alert('Kaydedilemedi.');}
+}
+
+let state={data:loadData(),tab:'progress'};
+if(!state.data.startDate)state.data.startDate=todayStr();
+if(!Array.isArray(state.data.entries))state.data.entries=[];
+if(!state.data.workouts)state.data.workouts={};
+
+// ─── HELPERS ─────────────────────────────────────────────────────────────────
+function macroBar(label,value,target,color,unit){
+  const pct=Math.min(100,target?(value/target)*100:0);
+  return`<div class="macro-row">
+    <div class="macro-head"><span class="name">${label}</span><span class="val">${value}${unit}<span class="target"> / ${target}${unit}</span></span></div>
+    <div class="macro-track"><div class="macro-fill" style="width:${pct}%;background:${color}"></div></div>
+  </div>`;
+}
+
+function getDayOfWeek(){
+  const start=new Date(state.data.startDate);
+  const today=new Date();
+  const diff=Math.floor((today-start)/(1000*60*60*24));
+  return diff%7; // 0-6, maps to WORKOUT_SCHEDULE
+}
+
+function getWeekNumber(){
+  const start=new Date(state.data.startDate);
+  const today=new Date();
+  const diff=Math.floor((today-start)/(1000*60*60*24));
+  return Math.floor(diff/7)+1;
+}
+
+// ─── TABS ─────────────────────────────────────────────────────────────────────
+function renderProgress(){
+  const entries=state.data.entries;
+  const sorted=[...entries].sort((a,b)=>a.date.localeCompare(b.date));
+  const latest=sorted[sorted.length-1];
+  const cw=latest?latest.weight:START_WEIGHT;
+  const totalChange=(START_WEIGHT-cw).toFixed(1);
+  const remaining=(cw-GOAL_WEIGHT).toFixed(1);
+  const today=new Date();
+  const start=new Date(state.data.startDate);
+  const dayNum=Math.min(TOTAL_DAYS,Math.max(1,Math.floor((today-start)/(1000*60*60*24))+1));
+  const weekNum=Math.ceil(dayNum/7);
+  const pct=(dayNum/TOTAL_DAYS)*100;
+  const tStr=todayStr();
+  const todayEntry=entries.find(e=>e.date===tStr);
+
+  return`
+  <div class="header-row">
+    <div>
+      <div class="eyebrow">Men's Physique Prep</div>
+      <div class="h1">HAFTA ${weekNum} <span class="sub">/ 12</span></div>
+    </div>
+    <div class="daycount">${dayNum}<span class="sub"> / ${TOTAL_DAYS} gün</span></div>
+  </div>
+  <div class="progress-track"><div class="progress-fill" style="width:${pct}%"></div></div>
+  <div class="stats">
+    <div class="stat-card" style="border-top-color:${C.text}"><div class="val">${cw}kg</div><div class="lbl">Şu an</div></div>
+    <div class="stat-card" style="border-top-color:${C.sage}"><div class="val" style="color:${C.sage}">-${totalChange}</div><div class="lbl">Verilen</div></div>
+    <div class="stat-card" style="border-top-color:${C.gold}"><div class="val" style="color:${C.gold}">${remaining}</div><div class="lbl">Kalan</div></div>
+    <div class="stat-card" style="border-top-color:${C.rust}"><div class="val" style="color:${C.rust}">${GOAL_WEIGHT}</div><div class="lbl">Hedef</div></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Bugünü Kaydet</div>
+    <div class="field-grid">
+      <div class="field"><label>Kilo (kg)</label><input class="pd-input" type="number" step="0.1" id="f-weight" placeholder="${cw}" value="${todayEntry?todayEntry.weight:''}"/></div>
+      <div class="field"><label>Kalori</label><input class="pd-input" type="number" id="f-cal" placeholder="2300" value="${todayEntry?todayEntry.calories:''}"/></div>
+      <div class="field"><label>Protein (g)</label><input class="pd-input" type="number" id="f-protein" placeholder="200" value="${todayEntry?todayEntry.protein:''}"/></div>
+      <div class="field"><label>Karbonhidrat (g)</label><input class="pd-input" type="number" id="f-carbs" placeholder="230" value="${todayEntry?todayEntry.carbs:''}"/></div>
+      <div class="field"><label>Yağ (g)</label><input class="pd-input" type="number" id="f-fat" placeholder="65" value="${todayEntry?todayEntry.fat:''}"/></div>
+      <div class="field"><label></label></div>
+    </div>
+    <label class="checkbox-row"><input type="checkbox" id="f-cardio" ${todayEntry&&todayEntry.cardio?'checked':''}/> Kardiyo tamamlandı (20-30 dk)</label>
+    <button class="pd-btn" id="saveBtn">Kaydet</button>
+  </div>
+
+  ${todayEntry?`
+  <div class="card">
+    <div class="card-title">Makro Takibi</div>
+    ${macroBar('Kalori',todayEntry.calories,TARGETS.calories,C.gold,'')}
+    ${macroBar('Protein',todayEntry.protein,TARGETS.protein,C.sage,'g')}
+    ${macroBar('Karb',todayEntry.carbs,TARGETS.carbs,C.steel,'g')}
+    ${macroBar('Yağ',todayEntry.fat,TARGETS.fat,C.rust,'g')}
+    <div style="margin-top:10px;font-size:12px;color:var(--muted)">
+      Kardiyo: <span style="color:${todayEntry.cardio?C.sage:C.rust}">${todayEntry.cardio?'✓ Tamam':'✗ Henüz yok'}</span>
+    </div>
+  </div>`:''}
+
+  ${sorted.length>1?`
+  <div class="card">
+    <div class="card-title">Kilo Grafiği</div>
+    ${svgChart(sorted)}
+  </div>`:''}
+
+  ${sorted.length>0?`
+  <div class="card">
+    <div class="card-title">Geçmiş</div>
+    <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>Tarih</th><th>Kilo</th><th>Kal</th><th>P</th><th>K</th><th>Y</th><th>Kar</th><th></th></tr></thead>
+      <tbody>
+      ${[...sorted].reverse().map(e=>`<tr>
+        <td>${e.date.slice(5)}</td>
+        <td>${e.weight}kg</td>
+        <td>${e.calories}</td>
+        <td>${e.protein}</td>
+        <td>${e.carbs}</td>
+        <td>${e.fat}</td>
+        <td style="color:${e.cardio?C.sage:C.rust}">${e.cardio?'✓':'—'}</td>
+        <td><button class="del-btn" data-date="${e.date}">×</button></td>
+      </tr>`).join('')}
+      </tbody>
+    </table>
+    </div>
+  </div>`:''}
+
+  <div class="footer">
+    <button class="pd-btn secondary" id="exportBtn" style="width:auto">Yedekle</button>
+    <button class="pd-btn secondary" id="importBtn" style="width:auto">Yükle</button>
+  </div>
+  <div class="footer-note">Veriler bu cihazda saklanır. Düzenli yedekle.</div>
+  `;
+}
+
+function svgChart(sorted){
+  const W=560,H=200,P={t:16,r:50,b:26,l:38};
+  const weights=sorted.map(e=>e.weight);
+  const minW=Math.min(...weights,GOAL_WEIGHT)-1;
+  const maxW=Math.max(...weights,START_WEIGHT)+1;
+  const plotW=W-P.l-P.r,plotH=H-P.t-P.b;
+  const x=i=>P.l+(sorted.length>1?(i/(sorted.length-1))*plotW:plotW/2);
+  const y=w=>P.t+(1-(w-minW)/(maxW-minW))*plotH;
+  const points=sorted.map((e,i)=>`${x(i)},${y(e.weight)}`).join(' ');
+  const goalY=y(GOAL_WEIGHT);
+  const circles=sorted.map((e,i)=>`<circle cx="${x(i)}" cy="${y(e.weight)}" r="3" fill="${C.sage}"><title>${e.date}: ${e.weight}kg</title></circle>`).join('');
+  return`<div class="chart-wrap"><svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto">
+    <line x1="${P.l}" y1="${P.t}" x2="${P.l}" y2="${H-P.b}" stroke="${C.border}"/>
+    <line x1="${P.l}" y1="${H-P.b}" x2="${W-P.r}" y2="${H-P.b}" stroke="${C.border}"/>
+    <line x1="${P.l}" y1="${goalY}" x2="${W-P.r}" y2="${goalY}" stroke="${C.gold}" stroke-dasharray="4 3"/>
+    <text x="${W-P.r+4}" y="${goalY+4}" fill="${C.gold}" font-size="10" font-family="JetBrains Mono,monospace">${GOAL_WEIGHT}</text>
+    <text x="${P.l-4}" y="${P.t+4}" fill="${C.muted}" font-size="10" font-family="JetBrains Mono,monospace" text-anchor="end">${maxW.toFixed(1)}</text>
+    <text x="${P.l-4}" y="${H-P.b}" fill="${C.muted}" font-size="10" font-family="JetBrains Mono,monospace" text-anchor="end">${minW.toFixed(1)}</text>
+    <text x="${P.l}" y="${H-6}" fill="${C.muted}" font-size="10" font-family="JetBrains Mono,monospace">${sorted[0].date.slice(5)}</text>
+    <text x="${W-P.r}" y="${H-6}" fill="${C.muted}" font-size="10" font-family="JetBrains Mono,monospace" text-anchor="end">${sorted[sorted.length-1].date.slice(5)}</text>
+    <polyline points="${points}" fill="none" stroke="${C.sage}" stroke-width="2"/>
+    ${circles}
+  </svg></div>`;
+}
+
+function renderWorkout(){
+  const dow=getDayOfWeek(); // 0-6
+  const wk=getWeekNumber();
+  const schedule=WORKOUT_SCHEDULE[dow];
+  const dateKey=todayStr();
+  const done=state.data.workouts[dateKey]||{};
+  const week2Note=wk===2?' <span style="color:'+C.gold+';font-size:10px">Hafta 2: +1-2 tekrar veya yavaş tempo</span>':'';
+
+  if(schedule.rest){
+    return`
+    <div class="card" style="text-align:center">
+      <div class="rest-card">
+        <div class="rest-icon">😴</div>
+        <div class="rest-title">${schedule.name}</div>
+        <div class="rest-sub">${schedule.restMsg}</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Kardiyo</div>
+      <div style="font-size:13px;color:var(--muted)">20-30 dakika LISS kardiyo yapmayı unutma!</div>
+      <label class="checkbox-row" style="margin-top:12px"><input type="checkbox" id="f-cardio-rest" ${done['cardio']?'checked':''}/> Kardiyo tamamlandı</label>
+      <button class="pd-btn" id="saveCardioBtn">Kaydet</button>
+    </div>`;
+  }
+
+  return`
+  <div class="card">
+    <div class="card-title">Bugünün Antrenmanı ${week2Note}</div>
+    <div class="day-label">${schedule.name}</div>
+    ${schedule.exercises.map(ex=>`
+      <div class="exercise">
+        <button class="ex-check ${done[ex.id]?'done':''}" data-ex="${ex.id}">
+          ${done[ex.id]?'<span style="color:#fff;font-size:13px">✓</span>':''}
+        </button>
+        <div class="ex-info" style="opacity:${done[ex.id]?'0.5':'1'}">
+          <div class="ex-name">${ex.name}</div>
+          <div class="ex-detail">${ex.detail}</div>
+        </div>
+      </div>`).join('')}
+    <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border)">
+      <label class="checkbox-row"><input type="checkbox" id="f-cardio-w" ${done['cardio']?'checked':''}/> Kardiyo tamamlandı (20-30 dk)</label>
+      <button class="pd-btn" id="saveWorkoutBtn">Antrenmanı Kaydet</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">Haftalık Program</div>
+    ${['Pzt','Sal','Çar','Per','Cum','Cmt','Paz'].map((d,i)=>{
+      const isToday=i===dow;
+      const s=WORKOUT_SCHEDULE[i];
+      return`<div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--border);${isToday?'color:var(--gold)':'opacity:0.6'}">
+        <span style="font-family:'Oswald',sans-serif;font-size:12px;width:28px">${d}</span>
+        <span style="font-size:12px">${s.rest?'🛌 Dinlenme':'💪 '+s.name.split('—')[0].trim()}</span>
+        ${isToday?'<span style="margin-left:auto;font-size:10px;background:var(--gold);color:var(--bg);padding:2px 6px;border-radius:10px;font-family:Oswald,sans-serif">BUGÜN</span>':''}
+      </div>`;
+    }).join('')}
+  </div>`;
+}
+
+function renderNutrition(){
+  const tStr=todayStr();
+  const todayEntry=state.data.entries.find(e=>e.date===tStr);
+  const p=todayEntry?todayEntry.protein:0;
+  const c=todayEntry?todayEntry.carbs:0;
+  const f=todayEntry?todayEntry.fat:0;
+  const kal=todayEntry?todayEntry.calories:0;
+
+  // Get today's day of week (0=Sun in JS, we use Mon=0 in our schedule)
+  const jsDay=new Date().getDay(); // 0=Sun,1=Mon,...,6=Sat
+  const schedDay=jsDay===0?6:jsDay-1; // convert to Mon=0...Sun=6
+  const DAY_NAMES=['Pazartesi','Sali','Carsamba','Persembe','Cuma','Cumartesi','Pazar'];
+  const todayPlan=WEEKLY_MEALS[schedDay];
+
+  function mealCard(meal){
+    return`<div class="meal-card">
+      <div class="meal-title">${meal.title} — <span style="color:var(--text)">${meal.kcal} kcal</span></div>
+      ${meal.items.map(i=>`
+        <div class="meal-item">
+          <span>${i.n}</span>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--gold)">${i.g}</span>
+        </div>`).join('')}
+      <div class="meal-macro-row">
+        <div class="meal-macro"><div class="mv" style="color:${C.sage}">${meal.p}g</div><div class="ml">Protein</div></div>
+        <div class="meal-macro"><div class="mv" style="color:${C.steel}">${meal.c}g</div><div class="ml">Karb</div></div>
+        <div class="meal-macro"><div class="mv" style="color:${C.rust}">${meal.f}g</div><div class="ml">Yag</div></div>
+      </div>
+    </div>`;
+  }
+
+  return`
+  <div class="card">
+    <div class="card-title">Bugun — ${DAY_NAMES[schedDay]} &bull; <span style="color:${C.gold}">${todayPlan.prot}</span></div>
+    <div style="display:flex;gap:16px;margin-bottom:4px;font-size:12px;color:var(--muted)">
+      <span>Hedef: <span style="color:var(--text);font-family:'JetBrains Mono',monospace">${todayPlan.tp}P / ${todayPlan.tc}K / ${todayPlan.tf}Y / ${todayPlan.kcal}kcal</span></span>
+    </div>
+    ${macroBar('Kalori',kal,todayPlan.kcal,C.gold,'')}
+    ${macroBar('Protein',p,todayPlan.tp,C.sage,'g')}
+    ${macroBar('Karbonhidrat',c,todayPlan.tc,C.steel,'g')}
+    ${macroBar('Yag',f,todayPlan.tf,C.rust,'g')}
+    <div style="font-size:11px;color:var(--muted);margin-top:6px">
+      ${kal===0?'Bugunku degerler icin Takip sekmesini kullan.':'Takip sekmesinden guncellendi.'}
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Bugunun Ogunleri</div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:12px">
+      16:8 pencere: <span style="color:var(--text)">12:00 — 20:00</span> &bull; Tum gramajlar <span style="color:${C.gold}">cig tartim</span>
+    </div>
+    ${mealCard(todayPlan.o1)}
+    ${mealCard(todayPlan.o2)}
+    ${mealCard(todayPlan.o3)}
+    ${mealCard(todayPlan.o4)}
+  </div>
+
+  <div class="card">
+    <div class="card-title">Haftalik Program Ozeti</div>
+    ${WEEKLY_MEALS.map((m,i)=>{
+      const isToday=i===schedDay;
+      const days=['Pzt','Sal','Car','Per','Cum','Cmt','Paz'];
+      return`<div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--border);${isToday?'':'opacity:0.55'}">
+        <span style="font-family:'Oswald',sans-serif;font-size:12px;width:28px;color:${isToday?C.gold:'var(--muted)'}">${days[i]}</span>
+        <span style="font-size:12px;flex:1">${m.prot}</span>
+        <span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted)">${m.tp}P ${m.kcal}kcal</span>
+        ${isToday?`<span style="font-size:10px;background:${C.gold};color:var(--bg);padding:2px 6px;border-radius:10px;font-family:Oswald,sans-serif">BUGUN</span>`:''}
+      </div>`;
+    }).join('')}
+  </div>
+
+  <div class="card">
+    <div class="card-title">Alisveris Listesi (Haftalik ~45EUR)</div>
+    ${[
+      ['🥚','Yumurta (21 adet = 3/gun)','~5EUR'],
+      ['🍗','Tavuk gogus ~1.8kg (Pzt/Per/Paz)','~9EUR'],
+      ['🍗','Tavuk but derisiz ~1.5kg (Car/Cmt)','~7EUR'],
+      ['🥩','Dana kiyma %5 ~1.4kg (Sal/Cum)','~10EUR'],
+      ['🌾','Yulaf (500g)','~2EUR'],
+      ['🍚','Basmati pirinc (2kg)','~4EUR'],
+      ['🥣','Cream of rice (1kg)','~4EUR'],
+      ['🍌','Muz (demet ~600g)','~2EUR'],
+      ['🍎','Elma (500g)','~2EUR'],
+      ['🍞','Kepekli ekmek (somun)','~2EUR'],
+      ['🫒','Zeytinyagi (500ml)','~4EUR'],
+      ['🧂','Baharat / tuz / karabiber','~2EUR'],
+    ].map(([icon,item,price])=>`
+      <div class="meal-item"><span>${icon} ${item}</span><span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:${C.gold}">${price}</span></div>`).join('')}
+    <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border);display:flex;justify-content:space-between;font-size:13px">
+      <span style="color:var(--muted)">Toplam tahmini</span>
+      <span style="font-family:'JetBrains Mono',monospace;color:${C.gold}">~53EUR</span>
+    </div>
+    <div style="font-size:10px;color:var(--muted);margin-top:6px">Protein tozu ayri butce (ay basi alis)</div>
+  </div>`;
+}
+
+// ─── RENDER ───────────────────────────────────────────────────────────────────
+function render(){
+  let content='';
+  if(state.tab==='progress') content=renderProgress();
+  else if(state.tab==='workout') content=renderWorkout();
+  else if(state.tab==='nutrition') content=renderNutrition();
+
+  document.getElementById('app').innerHTML=`
+    ${content}
+    <nav class="bottom-nav">
+      <button class="nav-btn ${state.tab==='progress'?'active':''}" data-tab="progress">
+        <span class="nav-icon">📊</span>Takip
+      </button>
+      <button class="nav-btn ${state.tab==='workout'?'active':''}" data-tab="workout">
+        <span class="nav-icon">💪</span>Antrenman
+      </button>
+      <button class="nav-btn ${state.tab==='nutrition'?'active':''}" data-tab="nutrition">
+        <span class="nav-icon">🥗</span>Beslenme
+      </button>
+    </nav>
+  `;
+  attach();
+}
+
+function attach(){
+  document.querySelectorAll('.nav-btn').forEach(b=>{
+    b.addEventListener('click',()=>{state.tab=b.dataset.tab;render();});
+  });
+
+  // Progress tab
+  const saveBtn=document.getElementById('saveBtn');
+  if(saveBtn) saveBtn.addEventListener('click',()=>{
+    const wEl=document.getElementById('f-weight');
+    const w=parseFloat(wEl.value);
+    if(!w){wEl.focus();return;}
+    const entry={
+      date:todayStr(),weight:w,
+      calories:parseInt(document.getElementById('f-cal').value)||0,
+      protein:parseInt(document.getElementById('f-protein').value)||0,
+      carbs:parseInt(document.getElementById('f-carbs').value)||0,
+      fat:parseInt(document.getElementById('f-fat').value)||0,
+      cardio:document.getElementById('f-cardio').checked,
+    };
+    state.data.entries=state.data.entries.filter(e=>e.date!==entry.date);
+    state.data.entries.push(entry);
+    saveData();render();
+  });
+
+  document.querySelectorAll('.del-btn').forEach(b=>{
+    b.addEventListener('click',()=>{
+      state.data.entries=state.data.entries.filter(e=>e.date!==b.dataset.date);
+      saveData();render();
+    });
+  });
+
+  const exportBtn=document.getElementById('exportBtn');
+  if(exportBtn) exportBtn.addEventListener('click',()=>{
+    const blob=new Blob([JSON.stringify(state.data,null,2)],{type:'application/json'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url;a.download=`prep-backup-${todayStr()}.json`;
+    document.body.appendChild(a);a.click();document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  });
+  const importBtn=document.getElementById('importBtn');
+  const importFile=document.getElementById('importFile');
+  if(importBtn) importBtn.addEventListener('click',()=>importFile.click());
+  importFile.addEventListener('change',e=>{
+    const file=e.target.files[0];if(!file)return;
+    const reader=new FileReader();
+    reader.onload=ev=>{
+      try{
+        const parsed=JSON.parse(ev.target.result);
+        if(parsed&&Array.isArray(parsed.entries)){
+          state.data=parsed;
+          if(!state.data.startDate)state.data.startDate=todayStr();
+          if(!state.data.workouts)state.data.workouts={};
+          saveData();render();
+        }else{alert('Geçersiz dosya.');}
+      }catch(err){alert('Dosya okunamadı.');}
+    };
+    reader.readAsText(file);importFile.value='';
+  });
+
+  // Workout tab
+  const saveWorkoutBtn=document.getElementById('saveWorkoutBtn');
+  if(saveWorkoutBtn) saveWorkoutBtn.addEventListener('click',()=>{
+    const dateKey=todayStr();
+    const done=state.data.workouts[dateKey]||{};
+    done['cardio']=document.getElementById('f-cardio-w').checked;
+    state.data.workouts[dateKey]=done;
+    saveData();
+    // Flash feedback
+    saveWorkoutBtn.textContent='✓ Kaydedildi!';
+    setTimeout(()=>{saveWorkoutBtn.textContent='Antrenmanı Kaydet';},1500);
+  });
+  const saveCardioBtn=document.getElementById('saveCardioBtn');
+  if(saveCardioBtn) saveCardioBtn.addEventListener('click',()=>{
+    const dateKey=todayStr();
+    const done=state.data.workouts[dateKey]||{};
+    done['cardio']=document.getElementById('f-cardio-rest').checked;
+    state.data.workouts[dateKey]=done;
+    saveData();
+    saveCardioBtn.textContent='✓ Kaydedildi!';
+    setTimeout(()=>{saveCardioBtn.textContent='Kaydet';},1500);
+  });
+
+  // Exercise checkboxes
+  document.querySelectorAll('.ex-check').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      const dateKey=todayStr();
+      if(!state.data.workouts[dateKey]) state.data.workouts[dateKey]={};
+      const exId=btn.dataset.ex;
+      state.data.workouts[dateKey][exId]=!state.data.workouts[dateKey][exId];
+      saveData();render();
+    });
+  });
+}
+
+render();
+</script>
+</body>
+</html>
